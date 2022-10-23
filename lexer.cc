@@ -356,6 +356,31 @@ string LexicalAnalyzer::isRealNum()
       char c;
     string lexeme;
     input.GetChar(c);
+    lexeme += c;
+    if(c == '0'){
+        input.GetChar(c);
+        lexeme += c;
+        if(c == '.'){
+            //cout << "Did we find x " << c << endl;
+            input.GetChar(c);
+            lexeme += c;
+            while (!input.EndOfInput() && isdigit(c)) {
+            lexeme += c;
+            //cout << "lexeme has been modified " << lexeme << endl;
+            input.GetChar(c);
+            //cout << "Additional charchter from isRealNum " << c << endl;
+        } 
+        if(!isdigit(c)){
+            input.UngetChar(c);
+        }
+            return lexeme;
+        } else {
+
+            input.UngetString(lexeme);
+            lexeme = "";
+            return lexeme;
+        }
+    }
     //cout << "This is the first char isRealNum() " << c << endl;
     if(isdigit(c)){
         lexeme = "";
