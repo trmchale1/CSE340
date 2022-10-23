@@ -247,9 +247,10 @@ string LexicalAnalyzer::isBase16()
     char c;
     string lexeme;
     input.GetChar(c);
+    lexeme += c;
     //cout << "First char from isBase16 " << c << endl;
-    if(ispdigit16(c)){
-        lexeme = "";
+    if(isdigit16(c)){
+        input.GetChar(c);
         while (!input.EndOfInput() && isdigit16(c)) {
             lexeme += c;
             //cout << "lexeme has been modified " << lexeme << endl;
