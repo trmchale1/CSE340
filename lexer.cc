@@ -210,9 +210,11 @@ string LexicalAnalyzer::isBase8()
     char c;
     string lexeme;
     input.GetChar(c);
-    lexeme += c;
+    if(c != '0'){
+        lexeme += c;
+    }
     //cout << "First char into input base8 " << c << endl;
-    if(ispdigit8(c)){
+    if(isdigit8(c)){
         input.GetChar(c);
         while (!input.EndOfInput() && isdigit8(c)) {
             lexeme += c;
@@ -247,9 +249,11 @@ string LexicalAnalyzer::isBase16()
     char c;
     string lexeme;
     input.GetChar(c);
-    lexeme += c;
+        if(c != '0'){
+        lexeme += c;
+    }
     //cout << "First char from isBase16 " << c << endl;
-    if(ispdigit16(c)){
+    if(isdigit16(c)){
         input.GetChar(c);
         while (!input.EndOfInput() && isdigit16(c)) {
             lexeme += c;
