@@ -210,8 +210,29 @@ string LexicalAnalyzer::isBase8()
     char c;
     string lexeme;
     input.GetChar(c);
-    if(c != '0'){
-        lexeme += c;
+    lexeme += c; 
+        if(c == '0'){
+            input.GetChar(c);
+            lexeme += c;
+            if(c == 'x'){
+            //cout << "Did we find x " << c << endl;
+            input.GetChar(c);
+            lexeme += c;
+                if (c == '0') {
+                //cout << "Did we find 1 " << c << endl;
+
+                    input.GetChar(c);
+                    lexeme += c;
+                }
+                if (c == '8'){
+                    //cout << "Did we find 6 " << c << endl;
+                    return lexeme;
+                }
+        } else {
+            input.UngetString(lexeme);
+            lexeme = "";
+            return lexeme;
+        }
     }
     //cout << "First char into input base8 " << c << endl;
     if(isdigit8(c)){
@@ -249,8 +270,29 @@ string LexicalAnalyzer::isBase16()
     char c;
     string lexeme;
     input.GetChar(c);
-        if(c != '0'){
+    lexeme += c;
+    if(c == '0'){
+        input.GetChar(c);
         lexeme += c;
+        if(c == 'x'){
+            //cout << "Did we find x " << c << endl;
+            input.GetChar(c);
+            lexeme += c;
+            if (c == '1') {
+                //cout << "Did we find 1 " << c << endl;
+
+                input.GetChar(c);
+                lexeme += c;
+            }
+            if (c == '6'){
+                //cout << "Did we find 6 " << c << endl;
+                return lexeme;
+            }
+        } else {
+            input.UngetString(lexeme);
+            lexeme = "";
+            return lexeme;
+        }
     }
     //cout << "First char from isBase16 " << c << endl;
     if(isdigit16(c)){
