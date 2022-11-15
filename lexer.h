@@ -14,12 +14,9 @@
 // ------- token types -------------------
 
 typedef enum { END_OF_FILE = 0,
-    IF, WHILE, DO, THEN, PRINT,
-    PLUS, MINUS, DIV, MULT,
-    EQUAL, COLON, COMMA, SEMICOLON,
-    LBRAC, RBRAC, LPAREN, RPAREN,
-    NOTEQUAL, GREATER, LESS, LTEQ, GTEQ,
-    DOT, NUM, ID, ERROR, REALNUM, BASE08NUM, BASE16NUM // TODO: Add labels for new token types here
+    PUBLIC, PRIVATE, EQUAL, COLON, COMMA, SEMICOLON,
+    LBRACE, RBRACE,
+    ID, ERROR // TODO: Add labels for new token types here
 } TokenType;
 
 class Token {
@@ -36,6 +33,15 @@ class LexicalAnalyzer {
     Token GetToken();
     TokenType UngetToken(Token);
     LexicalAnalyzer();
+    void parse_program();
+    void parse_global_vars();
+    void parse_scope();
+    void parse_varlist();
+    void parse_public_vars();
+    void parse_private_vars();
+    void parse_stmt_list();
+    void parse_stmt();
+
 
   private:
     std::vector<Token> tokens;
@@ -47,15 +53,8 @@ class LexicalAnalyzer {
     bool IsKeyword(std::string);
     TokenType FindKeywordIndex(std::string);
     Token ScanIdOrKeyword();
-    Token ScanNumber();
-    std::string isBase8();
-    std::string isBase16();
-    std::string isRealNum();
-    std::string isNumber();
-    bool isdigit8(char);
-    bool ispdigit8(char);
-    bool isdigit16(char);
-    bool ispdigit16(char);
+    bool SkipComment(); // check this before release
+
 };
 
 #endif  //__LEXER__H__
