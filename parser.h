@@ -4,19 +4,26 @@
 #include <string>
 #include "lexer.h"
 #include <vector>
+#include <string>
+
+using namespace std;
 
 
-struct symbol_table {
-    symbol_table_entry* entry;
-    symbol_table* previous;
-    symbol_table* next;
+class Parser {
+    public:
+        void parse_program();
+        void parse_global_vars();
+        void parse_scope();
+        void parse_varlist();
+        void parse_public_vars();
+        void parse_private_vars();
+        void parse_stmt_list();
+        void parse_stmt();
+        void printAssignment(Token,Token);
+        void addList(string);
+        void deleteList(string);
+        void printlist();
+
 };
 
-
-struct symbol_table_entry {
-    std::string name;
-    std::string scope;
-    int perms;
-};
-
-
+#endif  //__PARSER__H__

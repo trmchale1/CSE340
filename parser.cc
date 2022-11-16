@@ -3,58 +3,49 @@
 #include <vector>
 #include <string>
 #include <cctype>
+#include <cstring>
 
 #include "lexer.h"
-#include "inputbuf.h"
+#include "parser.h"
 
 using namespace std;
 
-string reserved[] = { "END_OF_FILE",
-    "PUBLIC", "PRIVATE","EQUAL", "COLON", "COMMA", "SEMICOLON",
-    "LBRACE", "RBRACE",
-    "ID", "ERROR"
-};
-
-#define KEYWORDS_COUNT 2
-string keyword[] = {"public","private"};
-
-/*
-
 struct symbol_table_entry {
-    char* name;
-    char* scope;
-    int perms;
-};
+            std::string name;
+            std::string scope;
+            int perms;
+        };
 
-struct symbol_table {
-    symbol_table_entry* entry;
-    symbol_table* previous;
-    symbol_table* next;
-};
+        struct symbol_table {
+            symbol_table_entry* entry;
+            symbol_table* previous;
+            symbol_table* next;
+        };
 
+        struct compare_lhs_rhs {
+            string lhs;
+            string rhs;
+            string scope1;
+            string scope2;
+        };
 
-struct compare_lhs_rhs {
-    string lhs;
-    string rhs;
-    string scope1;
-    string scope2;
-};
 
 struct symbol_table* symbolTable; 
 struct symbol_table* tempNode;
 struct symbol_table* newNode;
 
-char* global_scope = "::";
+string global_scope = "::";
 int sPermission = 0;
 
 vector< struct compare_lhs_rhs> memory;
 
+Parser parser;
  LexicalAnalyzer lexer;
  Token token1;
  Token token2;
  Token token3;
 
-void printAssignment(Token tok1, Token tok2){
+ void Parser::printAssignment(Token tok1, Token tok2){
 
     struct symbol_table* temp = newNode;
     struct symbol_table* temp1 = newNode;
@@ -75,7 +66,7 @@ void printAssignment(Token tok1, Token tok2){
    
     }
 
-    while(temp1 != NULL){
+        while(temp1 != NULL){
         if(temp1->entry->name == tok2.lexeme){
         if(temp1->entry->perms == 2 && global_scope != temp1->entry->scope){
             temp1 = temp1->previous;
@@ -106,7 +97,7 @@ void printAssignment(Token tok1, Token tok2){
     memory.push_back(temp_node);
 }
 
-void printlist(){
+void Parser::printlist(){
     for(int i=0; i < memory.size(); i++){
         cout << memory[i].scope1;
     
@@ -123,7 +114,7 @@ void printlist(){
         }
 }
 
-void deleteList(char* lexeme){
+void Parser::deleteList(string lexeme){
     if(symbolTable == NULL){
         return;
     }
@@ -147,14 +138,12 @@ void deleteList(char* lexeme){
         tempNode->next =NULL;
    }
 
-  
    }
    global_scope = newNode->entry->scope;
    
 }
 
-
- void addList(char* lexeme){ 
+void Parser::addList(string lexeme){ 
     if(symbolTable == NULL){ 
         symbolTable = (symbol_table*) malloc (sizeof(symbol_table));
         struct symbol_table_entry* newItem = (symbol_table_entry*) malloc (sizeof(symbol_table_entry));
@@ -162,9 +151,11 @@ void deleteList(char* lexeme){
         symbolTable->next = NULL;   
         symbolTable->previous = NULL;
 
-        int len = strlen(lexeme) ; 
+        int len = lexeme.length(); 
         symbolTable->entry->name = new char[len+1];
-        strcpy(symbolTable->entry->name,lexeme);
+        symbolTable->entry->name = lexeme;
+        // pass by reference?
+        //strcpy(symbolTable->entry->name,lexeme);
         symbolTable->entry->name[len] = '\0'; 
         symbolTable->entry->scope = global_scope;
         symbolTable->entry->perms = sPermission; 
@@ -183,10 +174,11 @@ void deleteList(char* lexeme){
     newNode->next = NULL;
     newNode->previous = tempNode;
     tempNode->next = newNode; // now newNode is at top of the stack; 
-    int len = strlen(lexeme) ;
+    int len = lexeme.length();
     
     newNode->entry->name = new char[len+1];
-    strcpy(newNode->entry->name, lexeme);
+    //strcpy(newNode->entry->name, lexeme);
+    newNode->entry->name = lexeme;
     newNode->entry->name[len] = '\0';
     newNode->entry->scope = global_scope;
     newNode->entry->perms = sPermission;
@@ -194,8 +186,7 @@ void deleteList(char* lexeme){
  
 }
 
-
-void LexicalAnalyzer::parse_program(){
+void Parser::parse_program(){
     //cout<< "Inside parse_program " << endl;
     token1 = lexer.GetToken();
     if(token1.token_type == ID) {
@@ -203,13 +194,13 @@ void LexicalAnalyzer::parse_program(){
     if(token2.token_type == COMMA || token2.token_type == SEMICOLON){
         lexer.UngetToken(token2);
         lexer.UngetToken(token1);
-        lexer.parse_global_vars();
-        lexer.parse_scope();
+        parser.parse_global_vars();
+        parser.parse_scope();
         //cout << " program -> global_vars scope" << endl;
     } else if(token2.token_type == LBRACE) {
         lexer.UngetToken(token2);
         lexer.UngetToken(token1);
-        lexer.parse_scope();
+        parser.parse_scope();
         //cout << "global_vars -> epsilon" << endl;
     } else {
         cout << "Syntax Error"<<endl;
@@ -221,12 +212,12 @@ void LexicalAnalyzer::parse_program(){
     }
 }
 
-void LexicalAnalyzer::parse_global_vars(){
+void Parser::parse_global_vars(){
     //cout<< "Inside parse_global_vars " << endl;
     token1 = lexer.GetToken();
     if(token1.token_type == ID){
         lexer.UngetToken(token1);
-        lexer.parse_varlist();
+        parser.parse_varlist();
         token1 = lexer.GetToken();
         if(token1.token_type == SEMICOLON) {
            //cout << " global_vars -> var_list SEMICOLON " << endl; 
@@ -241,8 +232,7 @@ void LexicalAnalyzer::parse_global_vars(){
     return;
 }
 
-
-void LexicalAnalyzer::parse_scope(){
+void Parser::parse_scope(){
     //cout<< "Inside parse_scope" << endl;
     token1 = lexer.GetToken();
     if(token1.token_type == ID){
@@ -251,9 +241,9 @@ void LexicalAnalyzer::parse_scope(){
         global_scope = const_cast<char *>(slexeme.c_str());  
         token1= lexer.GetToken();
     if(token1.token_type == LBRACE){   
-    lexer.parse_public_vars();
-    lexer.parse_private_vars();
-    lexer.parse_stmt_list();
+        parser.parse_public_vars();
+        parser.parse_private_vars();
+        parser.parse_stmt_list();
     token1 = lexer.GetToken();
     if(token1.token_type == RBRACE){
 //        cout << "call deleteList"<<endl;
@@ -264,7 +254,7 @@ void LexicalAnalyzer::parse_scope(){
         deleteList(global_scope);
     }
     else{
-        UngetToken(token1);
+        lexer.UngetToken(token1);
     } 
     }
     else {
@@ -282,7 +272,7 @@ void LexicalAnalyzer::parse_scope(){
     }
 }
 
-void LexicalAnalyzer::parse_public_vars(){
+void Parser::parse_public_vars(){
     //cout<< "Inside parse_public_vars " << endl;
     token1 = lexer.GetToken();
 //    cout << "token1.lexeme inside public_var " << token1.lexeme<< endl;
@@ -294,7 +284,7 @@ void LexicalAnalyzer::parse_public_vars(){
             //Check FIRSTSET of varlist;
         if(token1.token_type == ID){
             lexer.UngetToken(token1);
-            lexer.parse_varlist();
+            parser.parse_varlist();
             token1 = lexer.GetToken();
         if(token1.token_type == SEMICOLON){
 //            cout<< "public_vars -> PUBLIC COLON var_list SEMICOLON" << endl;
@@ -320,7 +310,7 @@ void LexicalAnalyzer::parse_public_vars(){
   }
 }
 
-void LexicalAnalyzer::parse_private_vars(){
+void Parser::parse_private_vars(){
     //cout<< "Inside parse_private_vars" << endl;
     token1=lexer.GetToken();
     if(token1.token_type == PRIVATE){
@@ -330,7 +320,7 @@ void LexicalAnalyzer::parse_private_vars(){
         token1 =lexer.GetToken();
         if(token1.token_type == ID){
             lexer.UngetToken(token1);
-            lexer.parse_varlist();
+            parser.parse_varlist();
             token1 = lexer.GetToken();
             if(token1.token_type == SEMICOLON){
 //                cout<< "private_vars -> PRIVATE COLON var_list SEMICOLON" <<endl;
@@ -354,7 +344,7 @@ void LexicalAnalyzer::parse_private_vars(){
         }
 }
 
-void LexicalAnalyzer::parse_varlist(){
+void Parser::parse_varlist(){
     //cout<< "Inside parse_varlist" << endl;
     token1 = lexer.GetToken();
 
@@ -373,13 +363,13 @@ void LexicalAnalyzer::parse_varlist(){
   if(token1.token_type == ID){
     token1 = lexer.GetToken();
      if(token1.token_type == COMMA){    
-       lexer.parse_varlist();
+       parser.parse_varlist();
 //       cout << "var_list -> ID COMMA var_list" << endl;
        return;
        }
      //FOLLOWSET of varlist
         else if(token1.token_type == SEMICOLON){
-            UngetToken(token1);
+            lexer.UngetToken(token1);
 //            cout << " var_list -> ID" << endl;
             return;
        }
@@ -394,8 +384,7 @@ void LexicalAnalyzer::parse_varlist(){
   }
 }
 
-
-void LexicalAnalyzer::parse_stmt(){
+void Parser::parse_stmt(){
 //cout<< "Inside parse_stmt" << endl; 
   token1 = lexer.GetToken();
   if(token1.token_type == ID){
@@ -425,7 +414,7 @@ void LexicalAnalyzer::parse_stmt(){
         //cout << "scope in parse_stmt() "<< global_scope << endl;
         lexer.UngetToken(token2);
         lexer.UngetToken(token1);
-        lexer.parse_scope();     
+        parser.parse_scope();     
      } else {
         cout << "Syntax Error" << endl;
         exit(1);
@@ -438,17 +427,17 @@ void LexicalAnalyzer::parse_stmt(){
   }
 }
 
-void LexicalAnalyzer::parse_stmt_list(){
+void Parser::parse_stmt_list(){
     //cout<< "Inside parse_stmt_list" << endl; 
  //check FIRST SET of scope()
     token1 = lexer.GetToken();
    if(token1.token_type == ID){
      lexer.UngetToken(token1);
-      lexer.parse_stmt();
+      parser.parse_stmt();
        token2 = lexer.GetToken();
        if(token2.token_type == ID){
             lexer.UngetToken(token2);
-            lexer.parse_stmt_list();
+            parser.parse_stmt_list();
        //cout<< " stmt_list -> stmt stmt_list" << endl;
         return;
        } else if(token2.token_type == RBRACE){       
@@ -465,212 +454,10 @@ void LexicalAnalyzer::parse_stmt_list(){
     }
 }
 
-*/
-
-void Token::Print()
-{
-    cout << "{" << this->lexeme << " , "
-         << reserved[(int) this->token_type] << " , "
-         << this->line_no << "}\n";
-}
-
-LexicalAnalyzer::LexicalAnalyzer()
-{
-    this->line_no = 1;
-    tmp.lexeme = "";
-    tmp.line_no = 1;
-    tmp.token_type = ERROR;
-}
-
-
-bool LexicalAnalyzer::SkipComment(){
- 
-    char c;
-    bool comment = false;
-  
-    input.GetChar(c);
-  
-    if(input.EndOfInput()){
-        input.UngetChar(c);
-        return comment;
-    }
-  
-     if(c=='/'){
-        input.GetChar(c);
-            if(c=='/'){
-                comment = true;
-                while (c != '\n'){
-                    comment = true;
-                    input.GetChar(c);
-                }
-                line_no +=1;
-                SkipComment();      
-         } else {
-            comment = false;
-            cout << "Comment not found" << endl;
-            return comment;
-         }
-      } 
-
-    if (!input.EndOfInput()) {
-        input.UngetChar(c);
-    } 
-    
-    return comment;
-
-}
-
-
-bool LexicalAnalyzer::SkipSpace()
-{
-    char c;
-    bool space_encountered = false;
-
-    input.GetChar(c);
-    line_no += (c == '\n');
-
-    while (!input.EndOfInput() && isspace(c)) {
-        space_encountered = true;
-        input.GetChar(c);
-        line_no += (c == '\n');
-    }
-
-    if (!input.EndOfInput()) {
-        input.UngetChar(c);
-    }
-    return space_encountered;
-}
-
-bool LexicalAnalyzer::IsKeyword(string s)
-{
-    for (int i = 0; i < KEYWORDS_COUNT; i++) {
-        if (s == keyword[i]) {
-            return true;
-        }
-    }
-    return false;
-}
-
-TokenType LexicalAnalyzer::FindKeywordIndex(string s)
-{
-    for (int i = 0; i < KEYWORDS_COUNT; i++) {
-        if (s == keyword[i]) {
-            return (TokenType) (i + 1);
-        }
-    }
-    return ERROR;
-}
-
-
-Token LexicalAnalyzer::ScanIdOrKeyword()
-{
-    char c;
-    input.GetChar(c);
-
-    if (isalpha(c)) {
-        tmp.lexeme = "";
-        while (!input.EndOfInput() && isalnum(c)) {
-            tmp.lexeme += c;
-            input.GetChar(c);
-        }
-        if (!input.EndOfInput()) {
-            input.UngetChar(c);
-        }
-        tmp.line_no = line_no;
-        if (IsKeyword(tmp.lexeme)){
-            tmp.token_type = FindKeywordIndex(tmp.lexeme);
-        }else
-            tmp.token_type = ID;
-    } else {
-        if (!input.EndOfInput()) {
-            input.UngetChar(c);
-        }
-        tmp.lexeme = "";
-        tmp.token_type = ERROR;
-    }
-    return tmp;
-}
-
-// you should unget tokens in the reverse order in which they
-// are obtained. If you execute
-//
-//    t1 = lexer.GetToken();
-//    t2 = lexer.GetToken();
-//    t3 = lexer.GetToken();
-//
-// in this order, you should execute
-//
-//    lexer.UngetToken(t3);
-//    lexer.UngetToken(t2);
-//    lexer.UngetToken(t1);
-//
-// if you want to unget all three tokens. Note that it does not
-// make sense to unget t1 without first ungetting t2 and t3
-//
-TokenType LexicalAnalyzer::UngetToken(Token tok)
-{
-    tokens.push_back(tok);;
-    return tok.token_type;
-}
-
-Token LexicalAnalyzer::GetToken()
-{
-    char c;
-
-    // if there are tokens that were previously
-    // stored due to UngetToken(), pop a token and
-    // return it without reading from input
-    if (!tokens.empty()) {
-        tmp = tokens.back();
-        tokens.pop_back();
-        return tmp;
-    }
-    SkipSpace();
-    SkipComment();
-    SkipSpace();
-    tmp.lexeme = "";
-    tmp.line_no = line_no;
-    input.GetChar(c);
-    switch (c) {
-        case '=':
-            tmp.token_type = EQUAL;
-            return tmp;
-        case ':':
-            tmp.token_type = COLON;
-            return tmp;
-        case ',':
-            tmp.token_type = COMMA;
-            return tmp;
-        case ';':
-            tmp.token_type = SEMICOLON;
-            return tmp;
-        case '{':
-            tmp.token_type = LBRACE;
-            return tmp;
-        case '}':
-            tmp.token_type = RBRACE;
-            return tmp;
-        default:
-            if (isdigit(c)) {
-                input.UngetChar(c);
-                cout << "This is a number, not calling ScanNumber()" << endl;
-            } else if (isalpha(c)) {
-                input.UngetChar(c);
-                return ScanIdOrKeyword();
-            } else if (input.EndOfInput())
-                tmp.token_type = END_OF_FILE;
-            else
-                tmp.token_type = ERROR;
-
-            return tmp;
-    }
-}
-
-/*
 int main()
-{
-    lexer.parse_program(); 
-    printlist();
+{   
+    parser.parse_program(); 
+    parser.printlist();
 //    LexicalAnalyzer lexer;
 //    Token token;
 //
@@ -682,4 +469,6 @@ int main()
 //        token.Print();x
 //    }
 }
-*/
+
+
+

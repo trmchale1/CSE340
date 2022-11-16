@@ -33,6 +33,7 @@ class LexicalAnalyzer {
     Token GetToken();
     TokenType UngetToken(Token);
     LexicalAnalyzer();
+    /*
     void parse_program();
     void parse_global_vars();
     void parse_scope();
@@ -41,6 +42,7 @@ class LexicalAnalyzer {
     void parse_private_vars();
     void parse_stmt_list();
     void parse_stmt();
+    */
 
 
   private:
