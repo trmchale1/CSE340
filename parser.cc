@@ -150,6 +150,8 @@ void Parser::s_add(string lexeme){
         struct symbol_table_entry* newItem = (symbol_table_entry*) malloc (sizeof(symbol_table_entry));
         
         symbolTable->entry = newItem;
+        symbolTable->next = NULL;
+        symbolTable->previous = NULL;
         symbolTable->entry->name = lexeme;
         symbolTable->entry->scope = current_scope;
         symbolTable->entry->perms = public_private; 
