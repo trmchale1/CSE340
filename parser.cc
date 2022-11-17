@@ -45,9 +45,7 @@ Token token1;
 Token token2;
 Token token3;
 
- // refactor assign, add, delete, print
 
-// no good ideas for assign
  void Parser::s_assign(Token tok1, Token tok2){
 
     struct symbol_table* temp = newNode;
@@ -101,7 +99,6 @@ Token token3;
 }
 
 void Parser::s_print(){
-    // rewrite for loop, google search vector loops c++
     for(int i=0; i < memory.size(); i++){
         cout << memory[i].scope1;
     
@@ -147,7 +144,6 @@ void Parser::s_delete(string lexeme){
    
 }
 
-// try deleting NULL assignments
 void Parser::s_add(string lexeme){ 
     if(symbolTable == NULL){ 
         symbolTable = (symbol_table*) malloc (sizeof(symbol_table));
